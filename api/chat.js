@@ -17,37 +17,43 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el prompt' });
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  // Usaremos una variable específica para tu llave de Google
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Falta la API Key en el servidor de Vercel' });
+    return res.status(500).json({ error: 'Falta la API Key de Gemini en el servidor de Vercel' });
   }
 
   try {
-    // 2. Llamada a OpenRouter con un modelo gratuito activo y vigente
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // 2. Llamada directa a la API oficial de Google Generative Language
+    // Usamos el modelo rápido y gratuito gemini-1.5-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://github.com',
-        'X-Title': 'AI Chat',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free', // Modelo gratuito actual
-        messages: [{ role: 'user', content: prompt }]
+        contents: [
+          {
+            parts: [{ text: prompt }]
+          }
+        ]
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error(`API rechazó la petición con código ${response.status}:`, errorData);
+      console.error(`Google API rechazó la petición con código ${response.status}:`, errorData);
       return res.status(response.status).json({ 
-        error: errorData.error?.message || 'Error en la API' 
+        error: errorData.error?.message || 'Error en la API de Google' 
       });
     }
 
     const data = await response.json();
-    const aiText = data.choices?.[0]?.message?.content || 'La IA no devolvió texto.';
+    
+    // Extraer la respuesta del formato estructurado de Gemini
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'La IA no devolvió texto.';
     
     return res.status(200).json({ text: aiText });
 
