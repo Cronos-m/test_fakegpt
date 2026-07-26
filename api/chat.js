@@ -17,22 +17,23 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el prompt' });
   }
 
-  // 2. Leemos la variable de entorno que configuraste en Vercel
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Falta la API Key en el servidor de Vercel' });
   }
 
   try {
-    // 3. Llamamos al modelo gratuito y rápido de OpenRouter
+    // 2. Llamada a OpenRouter con un modelo gratuito activo
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://github.com', // Opcional para OpenRouter
+        'X-Title': 'AI Chat',                // Opcional para OpenRouter
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3-8b-instruct:free', // Modelo 100% gratuito
+        model: 'google/gemma-2-9b-it:free', // Modelo 100% gratuito y disponible
         messages: [{ role: 'user', content: prompt }]
       })
     });
