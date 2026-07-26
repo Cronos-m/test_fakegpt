@@ -1,6 +1,6 @@
 // api/chat.js
 module.exports = async function handler(req, res) {
-  // 1. Configurar CORS para que tu frontend pueda llamar a esta función
+  // 1. Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -18,25 +18,35 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el prompt' });
   }
 
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Falta la API Key de Groq en el servidor' });
+  }
+
   try {
-    // 2. Usar Pollinations.ai (100% Gratis, sin API Key)
-    // Codificamos el prompt para que sea seguro en la URL
-    const encodedPrompt = encodeURIComponent(prompt);
-    const url = `https://text.pollinations.ai/${encodedPrompt}`;
-    
-    const response = await fetch(url, {
-      method: 'GET', // Pollinations responde perfectamente a solicitudes GET
+    // 2. Llamar a Groq (velocidad extrema)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        'Accept': 'text/plain'
-      }
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192', // Modelo ultra-rápido
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 1024,
+        stream: false
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`Error en el servicio de IA: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Error en la API de Groq');
     }
 
-    // 3. Pollinations devuelve el texto directamente, no un objeto JSON
-    const aiText = await response.text();
+    const data = await response.json();
+    const aiText = data.choices?.[0]?.message?.content || 'La IA no devolvió texto.';
     
     return res.status(200).json({ text: aiText });
 
