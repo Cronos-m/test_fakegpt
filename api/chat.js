@@ -1,4 +1,3 @@
-// api/chat.js
 module.exports = async function handler(req, res) {
   // 1. Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,34 +17,31 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el prompt' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  // 2. Leemos la variable de entorno que configuraste en Vercel
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Falta la API Key de Groq en el servidor' });
+    return res.status(500).json({ error: 'Falta la API Key en el servidor de Vercel' });
   }
 
   try {
-    // 2. Llamar a Groq (velocidad extrema)
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // 3. Llamamos al modelo gratuito y rápido de OpenRouter
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192', // Modelo ultra-rápido
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1024,
-        stream: false
+        model: 'meta-llama/llama-3-8b-instruct:free', // Modelo 100% gratuito
+        messages: [{ role: 'user', content: prompt }]
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      // 3. En lugar de lanzar un error al catch, respondemos directamente con el código de Groq (ej. 402)
-      console.error(`Groq rechazó la petición con código ${response.status}:`, errorData);
+      console.error(`API rechazó la petición con código ${response.status}:`, errorData);
       return res.status(response.status).json({ 
-        error: errorData.error?.message || 'Error en la API de Groq' 
+        error: errorData.error?.message || 'Error en la API' 
       });
     }
 
@@ -55,7 +51,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ text: aiText });
 
   } catch (error) {
-    // 4. Este catch ahora solo se activará si hay un fallo catastrófico de red o interno
     console.error('Error crítico en el servidor:', error);
     return res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
   }
