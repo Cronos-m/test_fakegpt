@@ -23,17 +23,17 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // 2. Llamada a OpenRouter con un modelo gratuito activo
+    // 2. Llamada a OpenRouter con un modelo gratuito activo y vigente
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://github.com', // Opcional para OpenRouter
-        'X-Title': 'AI Chat',                // Opcional para OpenRouter
+        'HTTP-Referer': 'https://github.com',
+        'X-Title': 'AI Chat',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'google/gemma-2-9b-it:free', // Modelo 100% gratuito y disponible
+        model: 'meta-llama/llama-3.3-70b-instruct:free', // Modelo gratuito actual
         messages: [{ role: 'user', content: prompt }]
       })
     });
