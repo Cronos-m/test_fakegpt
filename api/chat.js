@@ -17,16 +17,14 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el prompt' });
   }
 
-  // Usaremos una variable específica para tu llave de Google
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Falta la API Key de Gemini en el servidor de Vercel' });
   }
 
   try {
-    // 2. Llamada directa a la API oficial de Google Generative Language
-    // Usamos el modelo rápido y gratuito gemini-1.5-flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // 2. Usamos gemini-2.5-flash o gemini-flash para asegurar la compatibilidad con v1beta
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -51,8 +49,6 @@ module.exports = async function handler(req, res) {
     }
 
     const data = await response.json();
-    
-    // Extraer la respuesta del formato estructurado de Gemini
     const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'La IA no devolvió texto.';
     
     return res.status(200).json({ text: aiText });
