@@ -42,7 +42,11 @@ module.exports = async function handler(req, res) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Error en la API de Groq');
+      // 3. En lugar de lanzar un error al catch, respondemos directamente con el código de Groq (ej. 402)
+      console.error(`Groq rechazó la petición con código ${response.status}:`, errorData);
+      return res.status(response.status).json({ 
+        error: errorData.error?.message || 'Error en la API de Groq' 
+      });
     }
 
     const data = await response.json();
@@ -51,7 +55,8 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ text: aiText });
 
   } catch (error) {
-    console.error('Error en el proxy de IA:', error);
-    return res.status(500).json({ error: 'Error al consultar la IA: ' + error.message });
+    // 4. Este catch ahora solo se activará si hay un fallo catastrófico de red o interno
+    console.error('Error crítico en el servidor:', error);
+    return res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
   }
 }

@@ -175,7 +175,7 @@
   }
 
   // ✅ CORRECCIÓN CLAVE: Usar ruta relativa '/api/chat' para Vercel
-  async function queryGemini(prompt) {
+  async function queryGrooq(prompt) {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -202,7 +202,7 @@
     const prompt = `Genera exactamente 100 elementos de "${topic}". Devuelve solo una lista numerada del 1 al 100, sin texto adicional, sin introducción, sin conclusión. Solo la lista.`;
     
     try {
-      const aiList = await queryGemini(prompt);
+      const aiList = await queryGrooq(prompt);
       return `${intro}\n\n${aiList}`;
     } catch (error) {
       console.warn("La IA falló, activando modo de respaldo local:", error);
@@ -216,7 +216,7 @@
 
   async function queryAI(message) {
     try {
-      return await queryGemini(message);
+      return await queryGrooq(message);
     } catch (error) {
       return 'Lo siento, hubo un error de conexión con el servicio de IA. Por favor, intenta de nuevo.';
     }
