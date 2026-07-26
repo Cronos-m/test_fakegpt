@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   try {
     // 5. Llamar a la API de Google Gemini
     const response = await fetch(
-         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`
+         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
